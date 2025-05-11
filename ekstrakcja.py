@@ -78,22 +78,25 @@ if not column_mismatches:
     dropped_cols = one_variable.index
     combined_df = combined_df[not_one_variable]
 
+    #Wyrzucenie kolumny destination port, żeby nie wpływała na stronniczość modelu
+    combined_df.drop(columns=['Destination Port'], inplace=True)
+
     print('Skasowane kolumny z tymi samymi wartościami:',dropped_cols)
 
     # Oddzielenie tabeli
     X = combined_df.drop(columns=["Label"])
     y = combined_df["Label"]
 
+    # Sprawdzenie czy wszystkie kolumny są numeryczne czy wymagają encodingu
+    are_all_numeric = X.dtypes.apply(lambda dt: pd.api.types.is_numeric_dtype(dt)).all()
+    print("Wszystkie kolumny są numeryczne:", are_all_numeric)
+    print(X.info())
+    # TODO: Tabela Y będzie wymagać zmapowania typów ataków na wartości liczbowe. Z grupowaniem czy bez ?
+
     #Normalizacja wartości pomiędzy 0-1. Algorytm mógłby skupiać się za mocno na dużych liczbach
     scaler = MinMaxScaler()
     X_scaled_numpy = scaler.fit_transform(X)
     X_scaled = pd.DataFrame(X_scaled_numpy, columns=X.columns)
-
-    #Sprawdzenie czy wszystkie kolumny są numeryczne czy wymagają encodingu
-    are_all_numeric = X_scaled.dtypes.apply(lambda dt: pd.api.types.is_numeric_dtype(dt)).all()
-    print("Wszystkie kolumny są numeryczne:", are_all_numeric)
-    print(X_scaled.info())
-    #TODO: Tabela Y będzie wymagać zmapowania typów ataków na wartości liczbowe. Z grupowaniem czy bez ?
 
     #Ekstracja cech
     size = len(X.columns) // 2
