@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.decomposition import IncrementalPCA
 
 #Wczytanie 8 plików z danymi
 folder_path = r"C:\Users\PC\Downloads\archive"
@@ -86,12 +87,27 @@ if not column_mismatches:
     #Normalizacja wartości pomiędzy 0-1. Algorytm mógłby skupiać się za mocno na dużych liczbach
     scaler = MinMaxScaler()
     X_scaled_numpy = scaler.fit_transform(X)
-    X = pd.DataFrame(X_scaled_numpy, columns=X.columns)
+    X_scaled = pd.DataFrame(X_scaled_numpy, columns=X.columns)
 
     #Sprawdzenie czy wszystkie kolumny są numeryczne czy wymagają encodingu
-    are_all_numeric = X.dtypes.apply(lambda dt: pd.api.types.is_numeric_dtype(dt)).all()
+    are_all_numeric = X_scaled.dtypes.apply(lambda dt: pd.api.types.is_numeric_dtype(dt)).all()
     print("Wszystkie kolumny są numeryczne:", are_all_numeric)
-    print(X.info())
-   #TODO: Tabela Y będzie wymagać zmapowania typów ataków na wartości liczbowe. Z grupowaniem czy bez ?
+    print(X_scaled.info())
+    #TODO: Tabela Y będzie wymagać zmapowania typów ataków na wartości liczbowe. Z grupowaniem czy bez ?
+
+    #Ekstracja cech
+    size = len(X.columns) // 2
+    ipca = IncrementalPCA(n_components=size, batch_size=500)
+    for batch in np.array_split(X.scaled, len(X) // 500):
+        ipca.partial_fit(batch)
+
+    print(f'Zachowane informacje: {sum(ipca.explained_variance_ratio_):.2%}')
+
+    extracted_features_X = ipca.transform(X_scaled)
+    new_X = pd.DataFrame(extracted_features_X, columns=[f'PC{i + 1}' for i in range(size)])
+
+    #Dataframe new_X zawiera przetworzone dane dla modelu
+
+
 
 
