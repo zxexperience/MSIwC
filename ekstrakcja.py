@@ -34,8 +34,8 @@ if not column_mismatches:
 
     #Rozmiar danych do analizy
     rows, cols = combined_df.shape
-    print(f'Number of rows: {rows}')
-    print(f'Number of columns: {cols}')
+    print(f'Liczba wierszy: {rows}')
+    print(f'Liczba kolumn: {cols}')
 
     #Usunięicie białych znaków z nazw kolumn
     col_names = {col: col.strip() for col in combined_df.columns}
@@ -62,7 +62,7 @@ if not column_mismatches:
 
     print(f"Liczba usuniętych wierszy: {removed_rows} ({removed_percent:.2f}%)")
 
-    #Kasowanie kolumn z tymi samymyi wartościami
+    #Kasowanie kolumn z tymi samymyi wartościami. Zawierają same zera
     num_unique = combined_df.nunique()
     one_variable = num_unique[num_unique == 1]
     not_one_variable = num_unique[num_unique > 1].index
@@ -70,5 +70,5 @@ if not column_mismatches:
     dropped_cols = one_variable.index
     combined_df = combined_df[not_one_variable]
 
-    print('Dropped columns:',dropped_cols)
+    print('Skasowane kolumny z tymi samymi wartościami:',dropped_cols)
 
