@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
@@ -7,10 +8,10 @@ from tensorflow.keras.callbacks import EarlyStopping
 import matplotlib.pyplot as plt
 
 # Wczytanie danych BENIGN (do nauki autoencodera)
-X_train = pd.read_csv("X_ae.csv")
+X_train = pd.read_csv("data/X_ae.csv")
 
 # Wczytanie pełnego zbioru (do testowania detekcji anomalii)
-X_all = pd.read_csv("X_clf.csv")
+X_all = pd.read_csv("data/X_clf.csv")
 
 # Normalizacja (jeśli nie była wcześniej zrobiona)
 scaler = MinMaxScaler()
@@ -54,6 +55,8 @@ n_anomalies = np.sum(anomaly_flags)
 print(f"\nPróg detekcji anomalii (90 percentyl): {threshold:.6f}")
 print(f"Wykryto {n_anomalies} potencjalnych anomalii na {len(X_all)} przykładów.")
 
+os.makedirs("img", exist_ok=True)
+
 # Wykres błędów rekonstrukcji
 plt.figure(figsize=(10, 5))
 plt.hist(reconstruction_errors, bins=100, alpha=0.7)
@@ -63,13 +66,16 @@ plt.xlabel("Błąd rekonstrukcji")
 plt.ylabel("Liczba przypadków")
 plt.legend()
 plt.tight_layout()
-plt.savefig("reconstruction_error_hist.png")
+plt.savefig("img/reconstruction_error_hist.png")
 plt.close()
 
 print("Zapisano wykres do 'reconstruction_error_hist.png'")
-y_true = pd.read_csv("y_clf.csv").squeeze()
+y_true = pd.read_csv("data/y_clf.csv").squeeze()
 n_true_attacks = y_true[anomaly_flags].value_counts()
 print("\nWśród wykrytych anomalii:")
 print(n_true_attacks)
 
+n_false_attacks = y_true[~anomaly_flags].value_counts()
+print("\nWśród niewykrytych anomalii:")
+print(n_false_attacks)
 

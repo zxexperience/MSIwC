@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -10,8 +11,8 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 
 # Wczytanie danych
-X = pd.read_csv("X_clf.csv")
-y = pd.read_csv("y_clf.csv").squeeze()
+X = pd.read_csv("data/X_clf.csv")
+y = pd.read_csv("data/y_clf.csv").squeeze()
 
 # Check klas
 print("Liczność klas w y_clf:")
@@ -86,6 +87,8 @@ print(classification_report(y_true_labels, y_pred_labels, digits=4))
 print("Macierz pomyłek:")
 print(confusion_matrix(y_true_labels, y_pred_labels))
 
+os.makedirs("img", exist_ok=True)
+
 # Wykres: dokładność
 plt.figure(figsize=(8, 6))
 plt.plot(history.history["accuracy"], label="Train Accuracy")
@@ -96,7 +99,7 @@ plt.ylabel("Accuracy")
 plt.legend()
 plt.grid(True)
 plt.tight_layout()
-plt.savefig("training_accuracy.png")
+plt.savefig("img/training_accuracy.png")
 plt.close()
 
 # Wykres: strata
@@ -109,7 +112,7 @@ plt.ylabel("Loss")
 plt.legend()
 plt.grid(True)
 plt.tight_layout()
-plt.savefig("training_loss.png")
+plt.savefig("img/training_loss.png")
 plt.close()
 
 print("\nWykresy zapisane jako 'training_accuracy.png' i 'training_loss.png'")
