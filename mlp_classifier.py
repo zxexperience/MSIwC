@@ -1,18 +1,23 @@
 import os
+from pathlib import Path
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.utils import class_weight
+from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout, BatchNormalization
 from tensorflow.keras.utils import to_categorical
 import tensorflow as tf
 import matplotlib.pyplot as plt
 
+path_data = Path("data")
+path_out = Path("out_mlp")
+
 # Wczytanie danych
-X = pd.read_csv("data/X_clf.csv")
-y = pd.read_csv("data/y_clf.csv").squeeze()
+X = pd.read_csv(path_data / "X_clf.csv")
+y = pd.read_csv(path_data / "y_clf.csv").squeeze()
 
 # Check klas
 print("Liczność klas w y_clf:")
@@ -58,14 +63,17 @@ model.compile(
     metrics=['accuracy']
 )
 
+
 # Trening modelu
+early_stop = EarlyStopping(monitor='loss', patience=3, restore_best_weights=True)
 history = model.fit(
     X_train, y_train_cat,
     epochs=10,
     batch_size=512,
     validation_split=0.1,
     class_weight=class_weight_dict,
-    verbose=1
+    verbose=1,
+    # callbacks=[early_stop],
 )
 
 # Ewaluacja
@@ -76,6 +84,12 @@ print(f"\nDokładność na zbiorze testowym: {accuracy:.4f}")
 y_pred = model.predict(X_test)
 y_pred_labels = np.argmax(y_pred, axis=1)
 y_true_labels = y_test.values
+
+# SAVE
+pred_df = pd.DataFrame(y_pred, columns=[f"prob_{i}" for i in range(3)])
+pred_df["pred"] = y_pred_labels
+pred_df["y_true"] = y_true_labels
+pred_df.to_csv(path_out / "predictions.csv", index=False)
 
 # Raport
 print("\nUnikalne klasy w y_test:")

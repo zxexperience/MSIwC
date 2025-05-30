@@ -1,17 +1,22 @@
 import os
+from pathlib import Path
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import classification_report, confusion_matrix
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Dense
 from tensorflow.keras.callbacks import EarlyStopping
 import matplotlib.pyplot as plt
 
+path_data = Path("data")
+path_out = Path("out_autoenc")
+
 # Wczytanie danych BENIGN (do nauki autoencodera)
-X_train = pd.read_csv("data/X_ae.csv")
+X_train = pd.read_csv("data/X_ae.csv") # TODO: X_ae_train
 
 # Wczytanie pełnego zbioru (do testowania detekcji anomalii)
-X_all = pd.read_csv("data/X_clf.csv")
+X_all = pd.read_csv("data/X_clf.csv")  # TODO: X_test
 
 # Normalizacja (jeśli nie była wcześniej zrobiona)
 scaler = MinMaxScaler()
@@ -37,6 +42,7 @@ history = autoencoder.fit(
     epochs=50,
     batch_size=512,
     shuffle=True,
+    validation_split=0.1,
     callbacks=[early_stop],
     verbose=1
 )
@@ -44,6 +50,10 @@ history = autoencoder.fit(
 # Rekonstrukcja danych testowych
 X_pred = autoencoder.predict(X_all_scaled)
 reconstruction_errors = np.mean(np.square(X_all_scaled - X_pred), axis=1)
+
+# SAVE
+rec_err_df = pd.Series(reconstruction_errors, name="reconstruction_error")
+rec_err_df.to_csv(path_out/"rec_err.csv", index=False)
 
 # Automatyczny próg wykrywania anomalii
 threshold = np.percentile(reconstruction_errors, 90)
@@ -70,7 +80,7 @@ plt.savefig("img/reconstruction_error_hist.png")
 plt.close()
 
 print("Zapisano wykres do 'reconstruction_error_hist.png'")
-y_true = pd.read_csv("data/y_clf.csv").squeeze()
+y_true = pd.read_csv(path_data / "y_clf.csv").squeeze()
 n_true_attacks = y_true[anomaly_flags].value_counts()
 print("\nWśród wykrytych anomalii:")
 print(n_true_attacks)
@@ -79,3 +89,6 @@ n_false_attacks = y_true[~anomaly_flags].value_counts()
 print("\nWśród niewykrytych anomalii:")
 print(n_false_attacks)
 
+
+print("\nRaport klasyfikacji:")
+print(classification_report(np.where(y_true==0, 0, 1), np.astype(anomaly_flags, int), digits=4))
