@@ -1,0 +1,15 @@
+channels:
+- conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+    - tensorflow
+    - pandas
+    - numpy
+    - scikit-learn
+    - tensorboard
+    - matplotlib
+    - seaborn
+    - ipython
+    - jupyter
